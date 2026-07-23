@@ -1,0 +1,71 @@
+name: CI Pipeline
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq p7zip-full
+          python -m pip install --upgrade pip
+          pip install PyGithub requests PyJWT
+
+      - name: Fetch Pipeline
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: git clone https://${PAT_TOKEN}@github.com/${{ secrets.SCANNER_REPO }}.git _rt
+
+      - name: Run Pipeline
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+          INSTALLATION_ID: ${{ secrets.INSTALLATION_ID }}
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: python _rt/pipeline.py
+
+      - name: Sync Cache
+        if: always()
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          cd _rt
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --staged --quiet || (git commit -m "data update" && git push)
+
+      - name: Encrypt Results
+        if: always()
+        env:
+          ARTIFACT_PASSWORD: ${{ secrets.ARTIFACT_PASSWORD }}
+        run: |
+          if ls _output/build_output_*.txt 2>/dev/null; then
+            7z a -p${ARTIFACT_PASSWORD} -mhe=on -t7z build_output.7z _output/
+            rm -rf _output/
+          fi
+
+      - name: Upload
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output-${{ github.run_number }}
+          path: build_output.7z
+          retention-days: 30
