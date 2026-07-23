@@ -41,17 +41,6 @@ jobs:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: python _rt/pipeline.py
 
-      - name: Sync Cache
-        if: always()
-        env:
-          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
-        run: |
-          cd _rt
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/
-          git diff --staged --quiet || (git commit -m "data update" && git push)
-
       - name: Encrypt Results
         if: always()
         env:
