@@ -46,10 +46,8 @@ jobs:
         env:
           ARTIFACT_PASSWORD: ${{ secrets.ARTIFACT_PASSWORD }}
         run: |
-          if ls _output/build_output_*.txt 2>/dev/null; then
-            7z a -p${ARTIFACT_PASSWORD} -mhe=on -t7z build_output.7z _output/
-            rm -rf _output/
-          fi
+          7z a -p${ARTIFACT_PASSWORD} -mhe=on -t7z build_output.7z _output/
+          rm -rf _output/
 
       - name: Upload
         if: always()
