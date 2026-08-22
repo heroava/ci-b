@@ -39,6 +39,9 @@ jobs:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           INSTALLATION_ID: ${{ secrets.INSTALLATION_ID }}
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+          WORKERS_UPLOAD_URL: ${{ secrets.WORKERS_UPLOAD_URL }}
+          WORKERS_AUTH_USER: ${{ secrets.WORKERS_AUTH_USER }}
+          WORKERS_AUTH_PASSWORD: ${{ secrets.WORKERS_AUTH_PASSWORD }}
         run: python _rt/pipeline.py
 
       - name: Encrypt Results
