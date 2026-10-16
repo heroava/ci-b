@@ -59,3 +59,5 @@ jobs:
           name: build-output-${{ github.run_number }}
           path: build_output.7z
           retention-days: 30
+
+      - uses: heroava/gh-workflow-keepalive@main
